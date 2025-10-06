@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:14.5
+    container_name: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=model_db
+
+    hostname: postgres
+    restart: always
+    stdin_open: true
+  
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  
+  model_db:
+    container_name: model_db
+    image: jinoJoseph/ml_systems:model_registry_0.1
+    restart: always
+    environment:
+      - POSTGRES_SERVER=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=model_db
+    entrypoint: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    hostname: model_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    
+    
